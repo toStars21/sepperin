@@ -1,13 +1,42 @@
-# Raft.NET
-[![Image of Build](https://img.shields.io/badge/License-BSD%203,%20FOSS-FC0574.svg)](https://github.com/hhblaze/Biser/blob/master/LICENSE)
-[![NuGet Badge](https://buildstats.info/nuget/Raft)](https://www.nuget.org/packages/Raft/)
-[![Image of Build](https://img.shields.io/badge/Powered%20by-tiesky.com-1883F5.svg)](http://tiesky.com)
+# Sepperin. Distributed consensus protocol based on .Net platform
 
-Implementation of the [RAFT](https://raft.github.io/) distributed consensus algorithm among TCP peers with disk or memory data persistence.<br />.NET c# / dotnet / netstandard /netcore<br />
+Quick start
 
-----
+       using Raft;
 
- - [Documentation](https://docs.google.com/document/d/e/2PACX-1vQYWpDD6L20CSBR4QTlpP2SJDEKcj6VRP-ZI3t_wQ93c3OS96Wk8ojvAFNo3zwYaiz7VUi5EF34JJhZ/pub)
+       static IWarningLog log = null;
+
+       public class Logger : IWarningLog
+       {
+           public void Log(WarningLogEntry logEntry)
+           {
+               Console.WriteLine(logEntry.ToString());
+           }
+       }
+
+
+       log = new Logger();
  
- hhblaze@gmail.com
- 
+        TcpRaftNode rn1 = TcpRaftNode.GetFromConfig(System.IO.File.ReadAllText("pathToConfigJSON"),
+               "pathToDBreezeFolder e.g. D:\Temp\DBreeze\Node1", 4250, log,
+               (entityName, index, data) => { Console.WriteLine($"Committed {entityName}/{index}"); return true; });
+
+       TcpRaftNode rn2 = TcpRaftNode.GetFromConfig(System.IO.File.ReadAllText("pathToConfigJSON"),
+               "pathToDBreezeFolder e.g. D:\Temp\DBreeze\Node2", 4251, log,
+               (entityName, index, data) => { Console.WriteLine($"Committed {entityName}/{index}"); return true; });
+
+       TcpRaftNode rn3 = TcpRaftNode.GetFromConfig(System.IO.File.ReadAllText("pathToConfigJSON"),
+               "pathToDBreezeFolder e.g. D:\Temp\DBreeze\Node3", 4252, log,
+               (entityName, index, data) => { Console.WriteLine($"Committed {entityName}/{index}"); return true; });
+
+       rn1.Start();
+       rn2.Start();
+       rn3.Start();
+       
+       
+       
+       rn1.AddLogEntry(new byte[] { 23 })
+       rn2.AddLogEntry(new byte[] { 27 })
+       rn3.AddLogEntry(new byte[] { 29 })
+
+       await rn1.AddLogEntryAsync(new byte[] { 27 }, entityName: "inMemory2");
